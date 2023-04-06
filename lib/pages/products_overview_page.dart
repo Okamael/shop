@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shop/components/badge.dart';
 import 'package:shop/components/product_grid.dart';
+import 'package:shop/models/cart.dart';
+import 'package:shop/utils/app_routes.dart';
 
 enum FilterOptions { favoritos, todos }
 
@@ -40,6 +44,33 @@ class _ProductsOverViewPageState extends State<ProductsOverViewPage> {
               });
             },
           ),
+          Consumer<Cart>(
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRoutes.CART);
+              },
+              icon: Icon(Icons.shopping_cart),
+            ),
+            builder: (context, cart, child) => Badgee(
+              value: cart.itemsCount.toString(),
+              child: child!,
+            ),
+          ),
+
+          // Consumer<Cart>(
+          //   builder: (context, cart, child) => Badge(
+          //     textStyle: TextStyle(
+          //       fontSize: 10,
+          //       color: Theme.of(context).accentColor,
+          //     ),
+          //     label: Text(cart.itemsCount.toString()),
+          //     child: IconButton(
+          //       onPressed: () {},
+          //       icon: Icon(Icons.shopping_cart),
+          //     ),
+          //     alignment: AlignmentDirectional.centerStart,
+          //   ),
+          // )
         ],
       ),
       body: ProductGrid(showFavoriteOnly: _showFavorityOnly),
