@@ -24,11 +24,11 @@ class CartPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Total',
                     style: TextStyle(fontSize: 20),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 10,
                   ),
                   Chip(
@@ -41,7 +41,7 @@ class CartPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Spacer(),
+                  const Spacer(),
                   TextButton(
                     onPressed: () {
                       Provider.of<OrderList>(context, listen: false)
@@ -53,7 +53,7 @@ class CartPage extends StatelessWidget {
                       textStyle:
                           TextStyle(color: Theme.of(context).primaryColor),
                     ),
-                    child: Text('COMPRAR'),
+                    child: const Text('COMPRAR'),
                   )
                 ],
               ),
