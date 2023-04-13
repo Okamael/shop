@@ -10,6 +10,7 @@ class ProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final msg = ScaffoldMessenger.of(context);
     return ListTile(
       leading: CircleAvatar(
         backgroundImage: NetworkImage(product.imageUrl),
@@ -41,10 +42,21 @@ class ProductItem extends StatelessWidget {
                           onPressed: () => Navigator.of(context).pop(),
                           child: Text('Não')),
                       TextButton(
-                          onPressed: () {
-                            Provider.of<ProductList>(context, listen: false)
-                                .removeProduct(product);
-                            Navigator.of(context).pop();
+                          onPressed: () async {
+                            try {
+                              await Provider.of<ProductList>(context,
+                                      listen: false)
+                                  .removeProduct(product);
+                              Navigator.of(context).pop();
+                            } catch (error) {
+                              Navigator.of(context).pop();
+
+                              msg.showSnackBar(
+                                SnackBar(
+                                  content: Text(error.toString()),
+                                ),
+                              );
+                            }
                           },
                           child: Text('Sim'))
                     ],
