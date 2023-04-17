@@ -42,7 +42,7 @@ class Auth with ChangeNotifier {
       required String password,
       required String urlFragment}) async {
     final url =
-        'https://identitytoolkit.googleapis.com/v1/accounts:$urlFragment?key=AIzaSyDOrH29sBMSNGcFb5aPzbRhsa99zccta3g';
+        'https://identitytoolkit.googleapis.com/v1/accounts:$urlFragment?';
 
     final response = await http.post(Uri.parse(url),
         body: jsonEncode(
