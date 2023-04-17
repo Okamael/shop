@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shop/data/store.dart';
 import 'package:shop/exceptions/auth_exception.dart';
 
 class Auth with ChangeNotifier {
@@ -9,6 +11,7 @@ class Auth with ChangeNotifier {
   String? _email;
   String? _userId;
   DateTime? _expiryDate;
+  Timer? _logoutTimer;
 
   bool get isAuth {
     final isValid = _expiryDate?.isAfter(DateTime.now()) ?? false;
@@ -42,7 +45,7 @@ class Auth with ChangeNotifier {
       required String password,
       required String urlFragment}) async {
     final url =
-        'https://identitytoolkit.googleapis.com/v1/accounts:$urlFragment?';
+        'https://identitytoolkit.googleapis.com/v1/accounts:$urlFragment?key={}';
 
     final response = await http.post(Uri.parse(url),
         body: jsonEncode(
@@ -59,7 +62,56 @@ class Auth with ChangeNotifier {
       _expiryDate = DateTime.now().add(
         Duration(seconds: int.parse(body['expiresIn'])),
       );
+      Store.saveMap(key: 'userData', value: {
+        'token': _token,
+        'email': _email,
+        'userId': _userId,
+        'expiryDate': _expiryDate!.toIso8601String(),
+      });
     }
+    _autoLogout();
+    notifyListeners();
+  }
+
+  void logout() {
+    _token = null;
+    _email = null;
+    _userId = null;
+    _expiryDate = null;
+    _clearAutoLogoutTimer();
+    Store.remove(key: 'userData').then(
+      (_) => notifyListeners(),
+    );
+  }
+
+  void _clearAutoLogoutTimer() {
+    _logoutTimer?.cancel();
+    _logoutTimer = null;
+  }
+
+  void _autoLogout() {
+    _clearAutoLogoutTimer();
+    final timeToLogout = _expiryDate?.difference(DateTime.now()).inSeconds;
+    _logoutTimer = Timer(Duration(seconds: timeToLogout ?? 0), logout);
+  }
+
+  Future<void> tryAutoLogin() async {
+    if (isAuth) return;
+
+    final userData = await Store.getMap('userData');
+
+    if (userData.isEmpty) return;
+
+    final expiredDate = DateTime.parse(userData['expiryDate']);
+
+    if (expiredDate.isBefore(DateTime.now())) return;
+
+    _token = userData['token'];
+    _email = userData['email'];
+    _userId = userData['userId'];
+    _expiryDate = expiredDate;
+
+    _autoLogout();
     notifyListeners();
   }
 }
