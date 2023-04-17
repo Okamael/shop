@@ -20,7 +20,10 @@ class OrderList with ChangeNotifier {
     return _items.length;
   }
 
-  OrderList(this._token, this._items);
+  OrderList([
+    this._token = '',
+    this._items = const [],
+  ]);
   Future<void> addOrder(Cart cart) async {
     final date = DateTime.now();
     final response = await http.post(

@@ -10,14 +10,19 @@ import 'package:shop/models/product.dart';
 import 'package:shop/utils/constants.dart';
 
 class ProductList with ChangeNotifier {
-  String _token;
+  final String _token;
+  final String _userId;
   List<Product> _items = [];
 
   List<Product> get items => [..._items];
   List<Product> get favoriteItems =>
       _items.where((product) => product.isFavorite).toList();
 
-  ProductList(this._token, this._items);
+  ProductList([
+    this._token = '',
+    this._userId = '',
+    this._items = const [],
+  ]);
 
   Future<void> addProduct(Product product) async {
     final response = await http.post(
@@ -27,17 +32,16 @@ class ProductList with ChangeNotifier {
         'description': product.description,
         'price': product.price,
         'imageUrl': product.imageUrl,
-        'isFavorite': product.isFavorite,
       }),
     );
     final id = jsonDecode(response.body)['name'];
     _items.add(Product(
-        id: id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        isFavorite: product.isFavorite));
+      id: id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl,
+    ));
     notifyListeners();
   }
 
@@ -106,16 +110,25 @@ class ProductList with ChangeNotifier {
     final response = await http
         .get(Uri.parse('${Constants.PRODUCT_BASE_URL}.json?auth=$_token'));
     if (response.body == 'null') return;
+
+    final favoriteResponse = await http.get(
+      Uri.parse('${Constants.USER_FAVORITES_URL}/$_userId.json?auth=$_token'),
+    );
+
+    Map<String, dynamic> favoriteData = favoriteResponse.body == 'null'
+        ? {}
+        : jsonDecode(favoriteResponse.body);
+
     Map<String, dynamic> data = jsonDecode(response.body);
     data.forEach((productId, productData) {
+      final isFavorite = favoriteData[productId] ?? false;
       _items.add(Product(
-        id: productId,
-        name: productData['name'],
-        description: productData['description'],
-        price: productData['price'],
-        imageUrl: productData['imageUrl'],
-        isFavorite: productData['isFavorite'],
-      ));
+          id: productId,
+          name: productData['name'],
+          description: productData['description'],
+          price: productData['price'],
+          imageUrl: productData['imageUrl'],
+          isFavorite: isFavorite));
     });
     notifyListeners();
   }
